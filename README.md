@@ -1,10 +1,14 @@
 ﻿[![Health data pipeline](https://github.com/saeeda-tech/naija-health-pipeline/actions/workflows/pipeline.yml/badge.svg)](https://github.com/saeeda-tech/naija-health-pipeline/actions/workflows/pipeline.yml)
+
+**Write-up:** [I Found a 28% Discrepancy in Child Mortality Data. Most of It Was My Own Mistake.](https://saeeda-tech.github.io/naija-health-pipeline/)
+
+[![Health data pipeline](https://github.com/saeeda-tech/naija-health-pipeline/actions/workflows/pipeline.yml/badge.svg)](https://github.com/saeeda-tech/naija-health-pipeline/actions/workflows/pipeline.yml)
 # African Health Indicators Pipeline
 
 An automated data pipeline that collects, cleans and publishes public health
 indicators for six African countries from two independent international sources.
 
-**Status:** Week 4 of 6 — extraction working. Transformation and dashboard in progress.
+**Status:** Weeks 1-4 and 6 complete. Pipeline runs weekly; write-up published. Dashboard outstanding.
 
 ---
 
