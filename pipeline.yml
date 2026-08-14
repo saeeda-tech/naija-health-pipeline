@@ -1,0 +1,92 @@
+# Runs the full pipeline on a schedule, on GitHub's servers.
+#
+# Each run gets a brand new Ubuntu machine with nothing on it. The repo is
+# cloned fresh, dependencies installed from requirements.txt, and the three
+# scripts run in order. Nothing from a previous run survives - which is the
+# point. If it works here, it works anywhere.
+#
+# There is no data in the repo (data/ is gitignored), so ingest.py must fetch
+# everything from the WHO and DHS APIs. That was the design from the start.
+
+name: Health data pipeline
+
+on:
+  # Every Sunday at 06:00 UTC. Cron fields: minute hour day month weekday.
+  # GitHub can delay scheduled runs during busy periods - fine for weekly data.
+  schedule:
+    - cron: "0 6 * * 0"
+
+  # Lets you trigger a run by hand from the Actions tab. Essential for testing
+  # without waiting until Sunday.
+  workflow_dispatch:
+
+  # Also run on pushes that touch the pipeline itself, so a broken change is
+  # caught immediately rather than silently failing days later.
+  push:
+    branches: [main]
+    paths:
+      - "**.py"
+      - "requirements.txt"
+      - ".github/workflows/pipeline.yml"
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    # A hung API call should not burn free minutes indefinitely.
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # 3.12 rather than 3.14: widest package support, and the pipeline
+          # does not use anything newer.
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ingest from WHO and DHS APIs
+        run: python ingest.py
+
+      - name: Load into DuckDB
+        run: python load.py
+
+      - name: Transform and run quality checks
+        run: python transform.py
+
+      # Runs even if an earlier step failed, so a failure report still tells
+      # you how far the pipeline got before it broke.
+      - name: Summarise the run
+        if: always()
+        run: |
+          echo "### Pipeline run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d data/raw ]; then
+            echo "Raw files fetched: $(find data/raw -name '*.json' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No raw data - ingest did not complete." >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f data/health.duckdb ]; then
+            echo "Database built: yes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Database built: no" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # The database is rebuilt from scratch every run, so it is not committed
+      # back to the repo. Keeping it as an artifact means you can download and
+      # inspect the exact output of any past run.
+      - name: Upload the database
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-duckdb-${{ github.run_number }}
+          path: data/health.duckdb
+          retention-days: 30
