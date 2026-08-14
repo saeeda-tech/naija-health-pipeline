@@ -89,6 +89,10 @@ WHO_SCHEMA = """
         spatial_type   VARCHAR,
         year           INTEGER,
         sex_dimension  VARCHAR,
+        dim2_type      VARCHAR,
+        dim2           VARCHAR,
+        dim3_type      VARCHAR,
+        dim3           VARCHAR,
         value          DOUBLE,
         value_low      DOUBLE,
         value_high     DOUBLE,
@@ -98,7 +102,19 @@ WHO_SCHEMA = """
 
 
 def load_who(con, run_dir: Path) -> int:
-    """Create and populate stg_who. No rows are dropped at this stage."""
+    """
+    Create and populate stg_who. No rows are dropped at this stage.
+
+    Dim2 and Dim3 are kept because WHO reuses them for different things
+    depending on the indicator. Under-five mortality is broken down by
+    WEALTHQUINTILE in Dim3, so six rows exist per country-year: five wealth
+    bands plus a WEALTHQUINTILE_TOTL national figure. Discarding Dim3 would
+    make those look like duplicates and any aggregate would silently mix the
+    breakdown with the total.
+
+    The *_type columns are stored alongside the values because a column whose
+    meaning changes per indicator cannot be interpreted without its label.
+    """
     con.execute("DROP TABLE IF EXISTS stg_who")
     con.execute(WHO_SCHEMA)
 
@@ -109,6 +125,10 @@ def load_who(con, run_dir: Path) -> int:
             r.get("SpatialDimType"),
             as_int(r.get("TimeDim")),
             r.get("Dim1"),
+            r.get("Dim2Type"),
+            r.get("Dim2"),
+            r.get("Dim3Type"),
+            r.get("Dim3"),
             as_float(r.get("NumericValue")),
             as_float(r.get("Low")),
             as_float(r.get("High")),
@@ -117,7 +137,7 @@ def load_who(con, run_dir: Path) -> int:
         for indicator, ingested_at, r in read_source(run_dir, "who")
     ]
 
-    con.executemany("INSERT INTO stg_who VALUES (?,?,?,?,?,?,?,?,?)", rows)
+    con.executemany("INSERT INTO stg_who VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", rows)
     return len(rows)
 
 
