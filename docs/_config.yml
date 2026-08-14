@@ -1,0 +1,12 @@
+title: Notes on African Health Data
+description: >-
+  Building data pipelines and analysing African health and development data.
+  Reproducible code, documented decisions, and honest accounts of what went wrong.
+theme: minima
+author: Saeeda Saeed
+show_excerpts: false
+github_username: saeeda-tech
+exclude:
+  - "*.py"
+  - "*.duckdb"
+  - data/
