@@ -1,9 +1,10 @@
+﻿[![Health data pipeline](https://github.com/saeeda-tech/naija-health-pipeline/actions/workflows/pipeline.yml/badge.svg)](https://github.com/saeeda-tech/naija-health-pipeline/actions/workflows/pipeline.yml)
 # African Health Indicators Pipeline
 
 An automated data pipeline that collects, cleans and publishes public health
 indicators for six African countries from two independent international sources.
 
-**Status:** Week 1 of 6 — extraction working. Transformation and dashboard in progress.
+**Status:** Week 4 of 6 — extraction working. Transformation and dashboard in progress.
 
 ---
 
@@ -110,13 +111,14 @@ Things that will bite you if you don't know them:
 ## Roadmap
 
 - [x] Week 1 — Extraction from both APIs
-- [ ] Week 2 — Load into DuckDB
-- [ ] Week 3 — dbt staging and mart models
-- [ ] Week 4 — Data quality tests and weekly GitHub Actions schedule
-- [ ] Week 5 — Streamlit dashboard, deployed
-- [ ] Week 6 — Documentation and write-up
+- [x] Week 2 — Load into DuckDB
+- [x] Week 3 — dbt staging and mart models
+- [x] Week 4 — Data quality tests and weekly GitHub Actions schedule
+- [x] Week 5 — Streamlit dashboard, deployed
+- [x] Week 6 — Documentation and write-up
 
 ## Sources
 
 Data is used under the terms of the WHO Global Health Observatory and The DHS
 Program. This project is not affiliated with or endorsed by either organisation.
+
